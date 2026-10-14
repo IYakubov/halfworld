@@ -171,7 +171,7 @@ const T = {
   fireRate: 8,       // shots per second while the trigger is held
   bulletSpeed: 820,  // U/s
   spread: 0.025,     // rad
-  ammoStart: 80, ammoMax: 99, crateAmmo: 20, waveBonus: 25,
+  ammoStart: 300, ammoMax: 300, crateAmmo: 20, waveBonus: 25,
   crateChance: 0.2, crateTtl: 9, crateMax: 3,
   lives: 3,
   baseR: 84,         // sandbag ring outer edge
@@ -553,7 +553,7 @@ function updateHud(){
   });
 }
 function roleOf(s){ if(!active.includes(s)) return null; if(roles.turner===s && roles.gunner===s) return 'both'; return roles.turner===s ? 'turn' : 'fire'; }
-function updateAmmo(){ $('ammo').textContent=ammo; $('ammo-max').textContent=`/ ${T.ammoMax}`; $('ammo-box').classList.toggle('low', ammo<10); }
+function updateAmmo(){ $('ammo').textContent=ammo; $('ammo-max').textContent=`/ ${T.ammoMax}`; $('ammo-box').classList.toggle("low", ammo<30); }
 function renderHearts(broke){
   const el=$('hearts'); el.innerHTML=Array.from({length:T.lives},()=>HEART).join('');
   el.querySelectorAll('.heart').forEach((h,i)=>{ if(i>=lives) h.classList.add('lost'); if(broke && i===lives) h.classList.add('break'); });

@@ -279,7 +279,7 @@ socket.on('host_state',st=>{
   $$('.rotor').forEach(g=>g.style.transform=`rotate(${st.ang}rad)`);
   $$('.ammo-n').forEach(e=>e.textContent=st.ammo);
   $$('.ammo-m').forEach(e=>e.textContent=`/ ${st.max}`);
-  $$('.ammo').forEach(e=>e.classList.toggle('low',st.ammo<10));
+  $$('.ammo').forEach(e=>e.classList.toggle('low',st.ammo<30));
   $$('.ammo-bar').forEach(e=>e.style.width=(st.ammo/st.max*100)+'%');
   $$('.fire').forEach(e=>e.classList.toggle('empty',st.ammo<=0));
 });
