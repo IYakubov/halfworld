@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#cfcdc6">
+<title>Turret Duo</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--soil:#cfcdc6;--slab:#dddbd4;--paper:#ecebe6;--ink:#1b1b1a;--ink-3:#7c7a74}
+html,body{height:100%;background:var(--soil);color:var(--ink);font-family:'Unbounded',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:24px 16px;text-align:center}
+.cap{font-size:.66rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+h1{font-size:clamp(2rem,7vw,4.4rem);font-weight:800;letter-spacing:-.02em;line-height:1.02}
+.sub{font-size:clamp(.72rem,1.6vw,.9rem);color:#4a4944;max-width:440px;line-height:1.7}
+.btn{width:100%;max-width:320px;padding:19px 20px;border-radius:10px;border:none;background:var(--ink);color:var(--paper);font-family:inherit;font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.logo{width:120px;height:120px}
+.logo .g{transform-origin:60px 60px;animation:sweep 4s ease-in-out infinite}
+@keyframes sweep{0%,100%{transform:rotate(-35deg)}50%{transform:rotate(35deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <svg class="logo" viewBox="0 0 120 120" aria-hidden="true">
+    <circle cx="60" cy="60" r="44" fill="none" stroke="#bdb49c" stroke-width="12" stroke-dasharray="14 4"/>
+    <circle cx="60" cy="60" r="32" fill="#c9c3b2"/>
+    <g class="g"><rect x="60" y="56" width="52" height="8" rx="2" fill="#1b1b1a"/><rect x="44" y="48" width="26" height="24" rx="5" fill="#3a3936"/><circle cx="38" cy="60" r="7" fill="#1A4361"/><circle cx="46" cy="80" r="7" fill="#1b1b1a"/></g>
+  </svg>
+  <div class="cap">2 players · one machine gun</div>
+  <h1>Turret Duo</h1>
+  <div class="sub">One of you turns the gun, the other pulls the trigger. Hold back the crawling monsters together — roles swap every wave.</div>
+  <button class="btn" onclick="location.href='host'">Create game</button>
+</div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "turret-duo",
+  "version": "1.0.0",
+  "description": "Turret Duo - one machine gun, two players: one turns it, one shoots (Shared Couch)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.7.5"
+  }
+}

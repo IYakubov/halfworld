@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#cfcdc6">
+<title>Turret Duo — Controller</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+:root{
+  --soil:#cfcdc6; --soil-2:#c3c1b9; --slab:#dddbd4; --paper:#ecebe6;
+  --ink:#1b1b1a; --ink-2:#4a4944; --ink-3:#7c7a74; --line:rgba(27,27,26,.16); --line-2:rgba(27,27,26,.32);
+  --A:#1b1b1a; --B:#1A4361; --me:var(--A); --bad:#8a4a42;
+  --btn:min(36vh,150px);
+}
+body.slot-B{--me:var(--B)}
+html,body{height:100%;width:100%;background:var(--soil);color:var(--ink);font-family:'Unbounded',system-ui,sans-serif;overflow:hidden;touch-action:none;-webkit-font-smoothing:antialiased}
+input{user-select:text;-webkit-user-select:text}
+.cap{font-size:.62rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  padding:max(env(safe-area-inset-top),22px) max(env(safe-area-inset-right),22px) max(env(safe-area-inset-bottom),22px) max(env(safe-area-inset-left),22px);transition:opacity .25s}
+.screen.hidden{opacity:0;pointer-events:none}
+.brand{font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
+.btn{width:100%;max-width:300px;padding:18px 20px;border:none;border-radius:10px;background:var(--ink);color:var(--paper);font-family:inherit;font-size:.85rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:transform .08s}
+.btn:active{transform:scale(.98)}
+.btn.done{background:var(--slab);color:var(--ink);border:1px solid var(--line-2)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line-2);margin-top:-8px}
+#code-input{width:100%;max-width:300px;padding:16px;text-align:center;letter-spacing:.3em;background:var(--paper);border:1px solid var(--line-2);border-radius:10px;color:var(--ink);font-family:inherit;font-size:1.6rem;font-weight:700;outline:none}
+#code-input:focus{border-color:var(--ink)}
+#code-input::placeholder{color:#b4b2ab}
+#error-msg{min-height:1.2em;font-size:.66rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--bad);text-align:center}
+#error-msg.info{color:var(--ink-3)}
+.chip{display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:var(--me);color:var(--paper);font-weight:800}
+#lobby-chip{width:104px;height:104px;font-size:3.2rem;border-radius:16px}
+#lobby-name{font-size:1rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+#lobby-status{text-align:center;max-width:300px;line-height:1.7}
+
+/* ── play ── */
+#play-screen{justify-content:center;padding:max(env(safe-area-inset-top),12px) max(env(safe-area-inset-right),26px) max(env(safe-area-inset-bottom),12px) max(env(safe-area-inset-left),26px)}
+.head{position:absolute;top:max(env(safe-area-inset-top),10px);left:max(env(safe-area-inset-left),20px);right:max(env(safe-area-inset-right),16px);display:flex;align-items:center;gap:9px}
+.head .chip{width:26px;height:26px;font-size:.75rem;border-radius:5px}
+.head .nm{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+#menu-btn{margin-left:auto;display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--line-2);background:var(--slab);font-family:inherit;font-size:.56rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);touch-action:none}
+#menu-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+#menu-btn.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.pad{display:flex;align-items:center;justify-content:space-between;gap:18px;width:100%;max-width:760px;margin-top:26px}
+.pad.hide{display:none}
+.tb{width:var(--btn);height:var(--btn);flex-shrink:0;border-radius:22px;background:var(--slab);border:1px solid var(--line-2);display:flex;align-items:center;justify-content:center;touch-action:none;transition:background .06s,transform .06s}
+.tb svg{width:38%;height:38%;fill:none;stroke:var(--ink-2);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.tb.on{background:var(--me);border-color:var(--me);transform:scale(.96)}
+.tb.on svg{stroke:var(--paper)}
+.fire{width:calc(var(--btn)*1.18);height:calc(var(--btn)*1.18);flex-shrink:0;border-radius:50%;background:var(--me);display:flex;align-items:center;justify-content:center;touch-action:none;box-shadow:0 0 0 6px var(--soil),0 0 0 8px var(--me);transition:transform .06s,filter .06s}
+.fire svg{width:40%;height:40%;fill:none;stroke:var(--paper);stroke-width:2}
+.fire.on{transform:scale(.95);filter:brightness(1.35)}
+.fire.empty{filter:grayscale(1) brightness(1.2)}
+.info{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.info.left{align-items:flex-start;text-align:left}
+#status{font-size:clamp(.95rem,5vh,1.35rem);font-weight:700;line-height:1.25}
+#role-cap{min-height:1em}
+.dial{width:min(26vh,96px);height:min(26vh,96px)}
+.dial .rotor{transform-origin:50px 50px;transition:transform .1s linear}
+.ammo{display:flex;align-items:baseline;gap:6px}
+.ammo b{font-size:clamp(1.6rem,9vh,2.4rem);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.ammo small{font-size:.6rem;font-weight:600;letter-spacing:.12em;color:var(--ink-3)}
+.ammo.low b{color:var(--bad)}
+.bar{width:min(220px,40vw);height:8px;border-radius:4px;background:var(--soil-2);overflow:hidden}
+.bar i{display:block;height:100%;width:60%;background:var(--ink);transition:width .1s}
+.ammo.low + .bar i{background:var(--bad)}
+.both .tb{width:calc(var(--btn)*.86);height:calc(var(--btn)*.86)}
+.pair{display:flex;gap:10px}
+#mlist{display:none;width:100%;max-width:420px;flex-direction:column;gap:8px;margin-top:26px}
+#mlist.on{display:flex}
+.mrow{padding:16px;border-radius:10px;border:1px solid var(--line-2);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-align:center;touch-action:none}
+.mrow.focus{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+#swap{position:fixed;inset:0;z-index:80;pointer-events:none;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;background:var(--me);color:var(--paper);text-align:center}
+#swap.on{display:flex;animation:swapin 1.6s ease forwards}
+@keyframes swapin{0%{opacity:0}12%{opacity:1}75%{opacity:1}100%{opacity:0}}
+#swap .t{font-size:2.2rem;font-weight:800}
+#swap .s{font-size:.7rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+#rotate{display:none;position:fixed;inset:0;z-index:100;background:var(--soil);flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:24px}
+#rotate.visible{display:flex}
+#rotate svg{width:74px;height:74px;animation:rot 1.8s ease-in-out infinite}
+@keyframes rot{0%,30%{transform:rotate(0)}60%,100%{transform:rotate(90deg)}}
+#rotate .t{font-size:1rem;font-weight:700}
+#banner{position:fixed;top:0;left:0;right:0;z-index:90;display:none;background:var(--ink);color:var(--paper);text-align:center;font-size:.6rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:9px 0}
+</style>
+</head>
+<body>
+<div id="banner"></div>
+<div id="rotate">
+  <svg viewBox="0 0 100 100"><rect x="32" y="14" width="36" height="62" rx="6" fill="none" stroke="#1b1b1a" stroke-width="4"/><circle cx="50" cy="68" r="2.5" fill="#1b1b1a"/></svg>
+  <div class="t">Rotate your phone</div>
+  <div class="cap">The controller works in landscape</div>
+</div>
+<div id="swap"><div class="t">Swap!</div><div class="s" id="swap-s"></div></div>
+
+<!-- JOIN -->
+<div class="screen" id="join-screen">
+  <div class="brand">Turret Duo</div>
+  <div class="cap">Room code</div>
+  <input id="code-input" type="text" maxlength="6" placeholder="000000" autocomplete="off" inputmode="numeric">
+  <div id="error-msg"></div>
+  <button class="btn" id="join-btn">Join</button>
+</div>
+
+<!-- LOBBY -->
+<div class="screen hidden" id="lobby-screen">
+  <div class="brand">Turret Duo</div>
+  <div class="chip" id="lobby-chip">A</div>
+  <div id="lobby-name">Player A</div>
+  <div class="cap" id="lobby-status">Waiting for the second player…</div>
+  <button class="btn" id="ready-btn">Ready</button>
+  <button class="btn ghost" id="solo-btn" style="display:none">Play solo</button>
+</div>
+
+<!-- MESSAGE -->
+<div class="screen hidden" id="msg-screen">
+  <div class="brand">Turret Duo</div>
+  <div style="font-size:1.05rem;font-weight:700;text-align:center;max-width:300px;line-height:1.4" id="msg-title"></div>
+  <div class="cap" style="text-align:center;max-width:300px;line-height:1.7" id="msg-sub"></div>
+  <button class="btn" id="msg-btn" onclick="location.reload()">Reload</button>
+</div>
+
+<!-- PLAY -->
+<div class="screen hidden" id="play-screen">
+  <div class="head">
+    <span class="chip slot-letter">A</span><span class="nm" id="who-name">Player A</span>
+    <button id="menu-btn" aria-label="Menu"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Menu</button>
+  </div>
+
+  <!-- turner -->
+  <div class="pad hide" id="pad-turn">
+    <div class="tb" data-dir="-1"><svg viewBox="0 0 24 24"><path d="M15 4 L7 12 L15 20"/></svg></div>
+    <div class="info">
+      <svg class="dial" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="none" stroke="#7c7a74" stroke-width="1.5" stroke-dasharray="3 6"/><g class="rotor"><path d="M50 50 L92 50" stroke="#1b1b1a" stroke-width="7" stroke-linecap="round"/></g><circle cx="50" cy="50" r="11" fill="#1b1b1a"/></svg>
+      <div class="status-slot"></div>
+      <div class="cap">Hold to turn the gun</div>
+    </div>
+    <div class="tb" data-dir="1"><svg viewBox="0 0 24 24"><path d="M9 4 L17 12 L9 20"/></svg></div>
+  </div>
+
+  <!-- gunner -->
+  <div class="pad hide" id="pad-fire">
+    <div class="info left">
+      <div class="status-slot"></div>
+      <div class="ammo"><b class="ammo-n">60</b><small class="ammo-m">/ 99</small></div>
+      <div class="bar"><i class="ammo-bar"></i></div>
+      <div class="cap">Hold to fire · shoot crates for ammo</div>
+    </div>
+    <div class="fire"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5"/></svg></div>
+  </div>
+
+  <!-- solo: both -->
+  <div class="pad both hide" id="pad-both">
+    <div class="pair">
+      <div class="tb" data-dir="-1"><svg viewBox="0 0 24 24"><path d="M15 4 L7 12 L15 20"/></svg></div>
+      <div class="tb" data-dir="1"><svg viewBox="0 0 24 24"><path d="M9 4 L17 12 L9 20"/></svg></div>
+    </div>
+    <div class="info">
+      <svg class="dial" viewBox="0 0 100 100" style="width:min(18vh,70px);height:min(18vh,70px)"><circle cx="50" cy="50" r="44" fill="none" stroke="#7c7a74" stroke-width="1.5" stroke-dasharray="3 6"/><g class="rotor"><path d="M50 50 L92 50" stroke="#1b1b1a" stroke-width="7" stroke-linecap="round"/></g><circle cx="50" cy="50" r="11" fill="#1b1b1a"/></svg>
+      <div class="status-slot"></div>
+      <div class="ammo"><b class="ammo-n">60</b><small class="ammo-m">/ 99</small></div>
+    </div>
+    <div class="fire"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5"/></svg></div>
+  </div>
+
+  <div id="mlist"></div>
+</div>
+
+<script>window.__SC_BASE=location.pathname.replace(/[^/]*$/,'');</script><script src="socket.io/socket.io.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const $$=s=>[...document.querySelectorAll(s)];
+const socket=io({path:window.__SC_BASE+'socket.io',transports:['websocket']});
+
+let clientId=null;
+try{ clientId=localStorage.getItem('turretduo_client'); }catch(e){}
+if(!clientId){
+  clientId=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36));
+  try{ localStorage.setItem('turretduo_client',clientId); }catch(e){}
+}
+
+let mySlot=null, myCode=null, onPlay=false, isReady=false, dead=false, myRole=null;
+const buzz=ms=>{ try{ navigator.vibrate&&navigator.vibrate(ms); }catch(e){} };
+
+function showScreen(name){ ['join','lobby','msg','play'].forEach(s=>$(s+'-screen').classList.toggle('hidden',s!==name)); onPlay=name==='play'; checkOrientation(); }
+function banner(msg){ const b=$('banner'); if(msg){ b.textContent=msg; b.style.display='block'; } else b.style.display='none'; }
+
+// ── connection ──
+socket.on('disconnect',()=>{ releaseAll(); if(mySlot&&!dead) banner('Connection lost — reconnecting…'); });
+socket.on('connect',()=>{
+  if(dead) return;
+  if(mySlot&&myCode) socket.emit('rejoin_game',{code:myCode,slot:mySlot,clientId});
+  else tryAutoJoin();
+});
+
+// ── join ──
+const codeInput=$('code-input'), errorMsg=$('error-msg');
+$('join-btn').addEventListener('click',doJoin);
+codeInput.addEventListener('keydown',e=>{ if(e.key==='Enter') doJoin(); });
+function doJoin(){
+  const code=codeInput.value.trim();
+  if(!/^\d{6}$/.test(code)){ errorMsg.className=''; errorMsg.textContent='Enter 6 digits'; return; }
+  errorMsg.className='info'; errorMsg.textContent='Connecting…';
+  myCode=code; socket.emit('join_game',{code,clientId});
+}
+const urlCode=new URLSearchParams(location.search).get('code');
+const urlValid=urlCode&&/^\d{6}$/.test(urlCode);
+if(urlValid){ codeInput.value=urlCode; errorMsg.className='info'; errorMsg.textContent='Connecting…'; }
+let autoTried=false;
+function tryAutoJoin(){
+  if(autoTried||!urlValid||mySlot||!socket.connected) return;
+  if(document.visibilityState!=='visible') return;
+  autoTried=true; doJoin();
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState!=='visible') releaseAll(); tryAutoJoin(); });
+
+socket.on('join_error',msg=>{ errorMsg.className=''; errorMsg.textContent=msg; showScreen('join'); });
+socket.on('joined',({slot,code,started,ready})=>{
+  banner(null); mySlot=slot; myCode=code;
+  document.body.classList.toggle('slot-B',slot==='B');
+  $$('.slot-letter').forEach(e=>e.textContent=slot);
+  $('lobby-chip').textContent=slot; $('lobby-name').textContent='Player '+slot; $('who-name').textContent='Player '+slot;
+  if(!started){ setReady(!!ready); showScreen('lobby'); }
+});
+socket.on('replaced',()=>{ dead=true; mySlot=null; banner(null); $('msg-title').textContent='Controller is open in another tab'; $('msg-sub').textContent='This phone is already playing in another window.'; showScreen('msg'); socket.disconnect(); });
+socket.on('host_exit',()=>{ dead=true; banner(null); $('msg-title').textContent='The big screen went back to the game catalog'; $('msg-sub').textContent='Pick the next game there and scan its QR code.'; $('msg-btn').style.display='none'; showScreen('msg'); });
+socket.on('host_disconnected',()=>{ if(dead) return; dead=true; banner(null); $('msg-title').textContent='The game screen disconnected'; $('msg-sub').textContent='Create a new game on the big screen and scan the QR code again.'; showScreen('msg'); });
+
+// ── lobby ──
+const readyBtn=$('ready-btn'), soloBtn=$('solo-btn');
+function setReady(v){ isReady=v; readyBtn.textContent=v?'You’re ready':'Ready'; readyBtn.classList.toggle('done',v); }
+readyBtn.addEventListener('click',()=>{ if(isReady) return; buzz(15); setReady(true); socket.emit('player_ready'); });
+soloBtn.addEventListener('click',()=>{ buzz(15); soloBtn.style.display='none'; socket.emit('player_solo'); });
+socket.on('game_event',({event,data})=>{
+  if(event!=='lobby_ready_update') return;
+  const other=mySlot==='A'?'B':'A';
+  $('lobby-status').textContent = !data[other] ? 'Waiting for a second player — or play solo'
+    : !isReady ? 'Both here — press Ready' : data['ready'+other] ? 'Starting…' : 'Waiting for your partner…';
+  soloBtn.style.display=(!data[other]&&mySlot)?'':'none';
+});
+socket.on('game_start',()=>{ showScreen('play'); });
+socket.on('back_to_lobby',()=>{ releaseAll(); setReady(false); myRole=null; renderUI(null); showScreen('lobby'); });
+
+// ── mirror of the big screen ──
+socket.on('host_ui',renderUI);
+function renderUI(ui){
+  const ml=$('mlist');
+  if(!ui){ setRole(null); ml.classList.remove('on'); return; }
+  if(ui.items){
+    releaseAll();
+    ['turn','fire','both'].forEach(r=>$('pad-'+r).classList.add('hide'));
+    ml.innerHTML=ui.items.map((t,i)=>`<div class="mrow${i===ui.focus?' focus':''}" data-i="${i}">${t}</div>`).join('');
+    ml.querySelectorAll('.mrow').forEach(r=>{ r.addEventListener('touchstart',pick,{passive:false}); r.addEventListener('mousedown',pick); });
+    ml.classList.add('on');
+    return;
+  }
+  ml.classList.remove('on');
+  const role=ui.roles&&ui.roles[mySlot];
+  const prev=myRole;
+  setRole(role);
+  if(prev && role && prev!==role && role!=='both'){
+    $('swap-s').textContent = role==='fire' ? 'Now you shoot' : 'Now you turn the gun';
+    const s=$('swap'); s.classList.remove('on'); void s.offsetWidth; s.classList.add('on'); clearTimeout(s._t); s._t=setTimeout(()=>s.classList.remove('on'),1700); buzz([40,60,40]);
+  }
+  $$('.status-slot').forEach(el=>el.innerHTML=`<div id="status">${(ui.status&&ui.status[mySlot])||''}</div>`);
+}
+function pick(e){ e.preventDefault(); buzz(15); socket.emit('ctrl_pick',{index:+e.currentTarget.dataset.i}); }
+function setRole(r){
+  if(r!==myRole) releaseAll();
+  myRole=r;
+  ['turn','fire','both'].forEach(x=>$('pad-'+x).classList.toggle('hide',x!==r));
+}
+
+// live gun angle + ammo
+socket.on('host_state',st=>{
+  if(!st) return;
+  $$('.rotor').forEach(g=>g.style.transform=`rotate(${st.ang}rad)`);
+  $$('.ammo-n').forEach(e=>e.textContent=st.ammo);
+  $$('.ammo-m').forEach(e=>e.textContent=`/ ${st.max}`);
+  $$('.ammo').forEach(e=>e.classList.toggle('low',st.ammo<10));
+  $$('.ammo-bar').forEach(e=>e.style.width=(st.ammo/st.max*100)+'%');
+  $$('.fire').forEach(e=>e.classList.toggle('empty',st.ammo<=0));
+});
+
+// ── turning ──
+const heldDirs=new Set();
+function sendTurn(){ const d=[...heldDirs].pop()||0; socket.emit('ctrl_turn',{dir:d}); }
+$$('.tb').forEach(b=>{
+  const dir=+b.dataset.dir;
+  const down=e=>{ e.preventDefault(); if(heldDirs.has(dir)) return; heldDirs.add(dir); b.classList.add('on'); buzz(8); sendTurn(); };
+  const up=e=>{ e&&e.preventDefault(); if(!heldDirs.has(dir)) return; heldDirs.delete(dir); b.classList.remove('on'); sendTurn(); };
+  b.addEventListener('touchstart',down,{passive:false}); b.addEventListener('touchend',up,{passive:false}); b.addEventListener('touchcancel',up,{passive:false});
+  b.addEventListener('mousedown',down); b.addEventListener('mouseup',up); b.addEventListener('mouseleave',up);
+  b._up=up;
+});
+
+// ── trigger ──
+let firing=false;
+function setFire(on){ if(firing===on) return; firing=on; $$('.fire').forEach(f=>f.classList.toggle('on',on)); socket.emit('ctrl_fire',{on}); if(on) buzz(12); }
+$$('.fire').forEach(f=>{
+  const down=e=>{ e.preventDefault(); setFire(true); };
+  const up=e=>{ e.preventDefault(); setFire(false); };
+  f.addEventListener('touchstart',down,{passive:false}); f.addEventListener('touchend',up,{passive:false}); f.addEventListener('touchcancel',up,{passive:false});
+  f.addEventListener('mousedown',down); f.addEventListener('mouseup',up); f.addEventListener('mouseleave',up);
+});
+
+function releaseAll(){
+  if(heldDirs.size){ heldDirs.clear(); $$('.tb').forEach(b=>b.classList.remove('on')); if(socket.connected) socket.emit('ctrl_turn',{dir:0}); }
+  if(firing) setFire(false);
+}
+window.addEventListener('blur',releaseAll);
+
+// ── menu button ──
+const menuBtn=$('menu-btn');
+function menuDown(e){ e.preventDefault(); menuBtn.classList.add('active'); buzz(15); releaseAll(); socket.emit('ctrl_menu'); }
+function menuUp(e){ e.preventDefault(); menuBtn.classList.remove('active'); }
+menuBtn.addEventListener('touchstart',menuDown,{passive:false}); menuBtn.addEventListener('touchend',menuUp,{passive:false});
+menuBtn.addEventListener('touchcancel',menuUp,{passive:false});
+menuBtn.addEventListener('mousedown',menuDown); menuBtn.addEventListener('mouseup',menuUp); menuBtn.addEventListener('mouseleave',()=>menuBtn.classList.remove('active'));
+
+// ── landscape gate ──
+function checkOrientation(){
+  const portrait=matchMedia('(orientation: portrait)').matches;
+  $('rotate').classList.toggle('visible',portrait&&onPlay);
+  if(portrait) releaseAll();
+}
+matchMedia('(orientation: portrait)').addEventListener('change',checkOrientation);
+addEventListener('resize',checkOrientation);
+checkOrientation();
+</script>
+</body>
+</html>
